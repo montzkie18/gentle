@@ -25,8 +25,16 @@ ADD . /gentle
 RUN cd /gentle && python3 setup.py develop
 RUN cd /gentle && ./install_models.sh
 
+ARG HOST=0.0.0.0
+ARG PORT=8765
+ARG HOOK=''
+
+ENV host $HOST
+ENV port $PORT
+ENV hook $HOOK
+
 EXPOSE 8765
 
 VOLUME /gentle/webdata
 
-CMD cd /gentle && python3 serve.py
+CMD cd /gentle && python3 serve.py --host $host --port $port --webhook $hook
