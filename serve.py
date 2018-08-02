@@ -142,7 +142,9 @@ class TranscriptionsController(Resource):
         def send_result_to_webhooks(result):
             if self.webhook_url:                
                 response = -1 if not hasattr(result, 'to_json') else result.to_json(indent=2)
-                payload = {'transcription_id': uid,
+                message_type = 'realign_success' if response is not -1 else 'realign_fail'
+                payload = {'type': message_type,
+                           'transcription_id': uid,
                            'metadata': metadata,
                            'result': response,
                            'status': 'DONE'}
