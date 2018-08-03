@@ -1,0 +1,16 @@
+.git
+.DS_Store
+*.pyc
+*.swp
+*~
+examples
+exp
+ext/standard_kaldi
+ext/mkgraph
+ext/*-test
+ext/*.o
+ext/.depend.mk
+ext/k3
+ext/m3
+gentle.egg-info
+webdata
