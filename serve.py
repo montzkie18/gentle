@@ -24,7 +24,7 @@ class Utils():
     def get_next_uid(data_dir):
         uid = None
         while uid is None or os.path.exists(os.path.join(data_dir, uid)):
-            uid = uuid.uuid4().get_hex()[:8]
+            uid = uuid.uuid4().hex[:8]
         return uid
 
     @staticmethod
@@ -99,9 +99,9 @@ class TranscriptionsController(Resource):
         metadata = params['metadata']
 
         # some args are passed as URL params
-        disfluency = True if 'disfluency' in req.args else False
-        conservative = True if 'conservative' in req.args else False
-        async = True if 'async' not in req.args or req.args['async'][0] != 'false' else False
+        disfluency = True if b'disfluency' in req.args else False
+        conservative = True if b'conservative' in req.args else False
+        is_async = True if b'async' not in req.args or req.args[b'async'][0] != b'false' else False
 
         uid = Utils.get_next_uid(self.data_dir)
         output_dir = Utils.create_output_dir(self.data_dir, uid)
@@ -110,13 +110,13 @@ class TranscriptionsController(Resource):
         if not Utils.download_url_to_path(audio_url, audio_path):
             Utils.remove_directory(output_dir)
             req.setResponseCode(404)
-            return json.dumps({'message': 'Can\'t download audio from {}'.format(audio_url)})
+            return json.dumps({'message': 'Can\'t download audio from {}'.format(audio_url)}).encode('utf-8')
 
         transcript_path = os.path.join(output_dir, TEXT_FILENAME)
         if not Utils.download_url_to_path(transcript_url, transcript_path):
             Utils.remove_directory(output_dir)
             req.setResponseCode(404)
-            return json.dumps({'message': 'Can\'t download transcript from {}'.format(transcript_url)})
+            return json.dumps({'message': 'Can\'t download transcript from {}'.format(transcript_url)}).encode('utf-8')
 
         kwargs = {'disfluency': disfluency,
                   'conservative': conservative,
@@ -131,7 +131,7 @@ class TranscriptionsController(Resource):
             '''Write JSON to client on completion'''
             logging.info('Sending result of %s to caller', uid)
             req.setHeader("Content-Type", "application/json")
-            req.write(result.to_json(indent=2))
+            req.write(result.to_json(indent=2).encode('utf-8'))
             req.finish()
             return result
 
@@ -166,15 +166,15 @@ class TranscriptionsController(Resource):
             result_promise.cancel()
             cleanup_outdir(None)
 
-        if not async: result_promise.addCallback(write_result)
+        if not is_async: result_promise.addCallback(write_result)
         result_promise.addCallback(cleanup_outdir)
         result_promise.addCallback(send_result_to_webhooks)
         result_promise.addErrback(handle_error)
 
-        if async:
+        if is_async:
             req.setResponseCode(FOUND)
             req.setHeader("Content-Type", "application/json")
-            return json.dumps({'transcription_id': uid, 'status': 'IN_PROGRESS'})
+            return json.dumps({'transcription_id': uid, 'status': 'IN_PROGRESS'}).encode('utf-8')
         else:
             req.notifyFinish().addErrback(cancel_transcription)
             return NOT_DONE_YET
@@ -191,7 +191,7 @@ def serve(args):
     controller = TranscriptionsController(data_dir, transcriber, webhook_url=args.webhook)
 
     file = File(data_dir)
-    file.putChild('transcriptions', controller)
+    file.putChild(b'transcriptions', controller)
     site = Site(file)
 
     logging.info('about to listen')
