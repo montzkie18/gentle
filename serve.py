@@ -11,7 +11,6 @@ from twisted.web.static import File
 from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 from twisted.internet import reactor, threads
-from twisted.web._responses import FOUND
 
 from gentle.util.paths import get_datadir
 
@@ -172,7 +171,6 @@ class TranscriptionsController(Resource):
         result_promise.addErrback(handle_error)
 
         if is_async:
-            req.setResponseCode(FOUND)
             req.setHeader("Content-Type", "application/json")
             return json.dumps({'transcription_id': uid, 'status': 'IN_PROGRESS'}).encode('utf-8')
         else:
