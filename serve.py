@@ -76,8 +76,10 @@ class Transcriber():
                 logging.info('Transcribing %s, %s, %s', resample_audio, k, v)
 
         logging.info('Starting to transcribe %s', output_dir)
-        transcriber = gentle.ForcedAligner(self.resources, transcript, nthreads=self.nthreads, **kwargs)
-        output = transcriber.transcribe(resample_audio, progress_cb=on_progress, logging=logging)
+        with open(transcript, 'r') as file:
+            text = file.read()
+            transcriber = gentle.ForcedAligner(self.resources, text, nthreads=self.nthreads, **kwargs)
+            output = transcriber.transcribe(resample_audio, progress_cb=on_progress, logging=logging)
         logging.info('Finished transcribing %s', output_dir)
         return output
 
